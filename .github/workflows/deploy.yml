@@ -28,23 +28,19 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: |
-          cd app
-          npm cache clean --force
-          npm install --no-audit --no-fund --legacy-peer-deps
+      - name: Enable Corepack
+        run: corepack enable
 
-      - name: Verify TypeScript installed
+      - name: Install dependencies with pnpm
         run: |
           cd app
-          ls -la node_modules/.bin/ | head -10
-          cat node_modules/typescript/package.json | grep version
+          pnpm install --no-frozen-lockfile
 
       - name: Build static site
         run: |
           cd app
-          ./node_modules/.bin/tsc -b
-          ./node_modules/.bin/vite build
+          pnpm exec tsc -b
+          pnpm exec vite build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
