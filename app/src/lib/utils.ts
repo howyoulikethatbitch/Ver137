@@ -23,6 +23,7 @@ interface ShareCardOptions {
   title: string;
   subtitle?: string;
   entries: ShareCardEntry[];
+  year?: number;
   stats?: {
     totalEntries: number;
     completed: number;

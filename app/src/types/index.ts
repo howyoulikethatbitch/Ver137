@@ -1,3 +1,5 @@
+import type { Milestone } from '@/components/MilestoneModal';
+
 export type Status = 'COMPLETE' | 'ONGOING' | 'DROPPED' | 'PLANNED';
 
 export type AirDay = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
@@ -152,7 +154,13 @@ export type AppAction =
   | { type: 'DELETE_DRAWER'; payload: number }
   | { type: 'IMPORT_DATA'; payload: unknown }
   | { type: 'SET_ONGOING_YEAR'; payload: number }
-  | { type: 'SET_WATCHING_SINCE'; payload: number | null };
+  | { type: 'SET_WATCHING_SINCE'; payload: number | null }
+  | { type: 'SET_IMPORT_MODE'; payload: boolean }
+  | { type: 'PUSH_MILESTONE'; payload: Milestone }
+  | { type: 'POP_MILESTONE' }
+  | { type: 'CLEAR_MILESTONE_QUEUE' }
+  | { type: 'CELEBRATE_MILESTONE'; payload: string }
+  | { type: 'SET_SHOW_MILESTONE_CELEBRATIONS'; payload: boolean };
 
 export interface StorageResult {
   success: boolean;

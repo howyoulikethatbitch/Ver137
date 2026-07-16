@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, Loader2, Check } from "lucide-react";
-import { generateShareCard, downloadPNG, generateShareFilename, type ShareCardOptions, type ShareCardType } from "@/utils";
+import { generateShareCard, downloadPNG, generateShareFilename, type ShareCardOptions, type ShareCardType } from "@/lib/utils";
 
 interface ShareButtonProps {
   type: ShareCardType;

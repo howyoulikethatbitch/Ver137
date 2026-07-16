@@ -1,4 +1,4 @@
-import { useState, memo, useMemo } from "react";
+import { useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ChevronDown, ChevronRight, Trash2, Plus, X, AlertTriangle, Edit3, Lock } from "lucide-react";
 import { useApp } from "@/context/AppContext";

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef, useState } from 'react';
 import type { AppState, AppAction, Entry, OngoingEntry, FavoriteEntry, Top10Drawer, AirDay } from '@/types';
 import { saveToIndexedDB, loadFromIndexedDB } from '@/hooks/useIndexedDB';
 import type { Milestone, MilestoneType } from '@/components/MilestoneModal';
