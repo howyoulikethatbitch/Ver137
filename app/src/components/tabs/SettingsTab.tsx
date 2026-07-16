@@ -10,7 +10,10 @@ import {
   AlertTriangle,
   Database,
   Settings,
-  Trash2
+  Trash2,
+  Bell,
+  BellOff,
+  Loader2,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { saveToIndexedDB, clearIndexedDB } from '@/hooks/useIndexedDB';
@@ -24,7 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-const APP_VERSION = '1.3.6';
+const APP_VERSION = '1.3.8';
 
 export default function SettingsTab() {
   const { state, dispatch } = useApp();
@@ -44,6 +47,7 @@ export default function SettingsTab() {
   const [showImportError, setShowImportError] = useState(false);
   const [showImportSuccess, setShowImportSuccess] = useState(false);
   const [importMigratedCount, setImportMigratedCount] = useState(0);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Clear data state
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -101,12 +105,18 @@ export default function SettingsTab() {
     setShowImportSuccess(false);
     setImportMigratedCount(0);
 
+    // Enter import mode
+    setIsImporting(true);
+    dispatch({ type: 'SET_IMPORT_MODE', payload: true });
+
     try {
       // Check file size
       const fileSizeMB = file.size / (1024 * 1024);
       if (fileSizeMB > 100) {
         setImportError(`File too large (${fileSizeMB.toFixed(1)} MB). Maximum allowed is 100 MB.`);
         setShowImportError(true);
+        dispatch({ type: 'SET_IMPORT_MODE', payload: false });
+        setIsImporting(false);
         return;
       }
 
@@ -119,6 +129,8 @@ export default function SettingsTab() {
       } catch {
         setImportError('Invalid JSON file. Please make sure the file is a valid BL Watchlist backup.');
         setShowImportError(true);
+        dispatch({ type: 'SET_IMPORT_MODE', payload: false });
+        setIsImporting(false);
         return;
       }
 
@@ -131,6 +143,8 @@ export default function SettingsTab() {
       if (entries.length === 0) {
         setImportError('The backup file contains no entries.');
         setShowImportError(true);
+        dispatch({ type: 'SET_IMPORT_MODE', payload: false });
+        setIsImporting(false);
         return;
       }
 
@@ -142,6 +156,8 @@ export default function SettingsTab() {
           'Consider removing poster images from some entries to reduce size.'
         );
         setShowImportError(true);
+        dispatch({ type: 'SET_IMPORT_MODE', payload: false });
+        setIsImporting(false);
         return;
       }
 
@@ -194,7 +210,11 @@ export default function SettingsTab() {
             })) : []
           })) as AppState['top10Drawers'] : [],
           ongoingYear: typeof data.ongoingYear === 'number' ? data.ongoingYear : new Date().getFullYear(),
-          watchingSince: typeof data.watchingSince === 'number' ? data.watchingSince : null
+          watchingSince: typeof data.watchingSince === 'number' ? data.watchingSince : null,
+          importMode: false,
+          milestoneQueue: [],
+          celebratedMilestones: Array.isArray(data.celebratedMilestones) ? data.celebratedMilestones as string[] : [],
+          showMilestoneCelebrations: true,
         };
       } else {
         // Legacy format - entries only
@@ -204,7 +224,11 @@ export default function SettingsTab() {
           favorites: [],
           top10Drawers: [],
           ongoingYear: new Date().getFullYear(),
-          watchingSince: null
+          watchingSince: null,
+          importMode: false,
+          milestoneQueue: [],
+          celebratedMilestones: [],
+          showMilestoneCelebrations: true,
         };
       }
 
@@ -233,6 +257,10 @@ export default function SettingsTab() {
       const msg = err instanceof Error ? err.message : String(err);
       setImportError(`Import failed: ${msg}`);
       setShowImportError(true);
+    } finally {
+      // Exit import mode
+      dispatch({ type: 'SET_IMPORT_MODE', payload: false });
+      setIsImporting(false);
     }
   }, [dispatch]);
 
@@ -246,14 +274,39 @@ export default function SettingsTab() {
         favorites: [],
         top10Drawers: [],
         ongoingYear: new Date().getFullYear(),
-        watchingSince: null
+        watchingSince: null,
+        importMode: false,
+        milestoneQueue: [],
+        celebratedMilestones: [],
+        showMilestoneCelebrations: true,
       }
     });
     setShowClearConfirm(false);
   }, [dispatch]);
 
+  const toggleMilestoneCelebrations = useCallback(() => {
+    dispatch({ type: 'SET_SHOW_MILESTONE_CELEBRATIONS', payload: !state.showMilestoneCelebrations });
+  }, [dispatch, state.showMilestoneCelebrations]);
+
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full relative">
+      {/* Import Mode Banner */}
+      <AnimatePresence>
+        {isImporting && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-16 left-0 right-0 z-[80] bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 flex items-center justify-center gap-2"
+          >
+            <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+            <span className="text-amber-400 text-sm font-medium">
+              Importing... milestone notifications paused
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex items-center gap-2">
         <Settings className="w-6 h-6 text-[#E50914]" />
@@ -268,7 +321,8 @@ export default function SettingsTab() {
           {/* Import */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[#141414] border border-white/[0.06] text-white hover:bg-white/[0.04] transition-colors tap-active text-left"
+            disabled={isImporting}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[#141414] border border-white/[0.06] text-white hover:bg-white/[0.04] transition-colors tap-active text-left disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="w-10 h-10 rounded-lg bg-[#E50914]/10 flex items-center justify-center flex-shrink-0">
               <Upload className="w-5 h-5 text-[#E50914]" />
@@ -342,6 +396,45 @@ export default function SettingsTab() {
             </div>
           </button>
         </div>
+      </div>
+
+      {/* Milestone Settings */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-[#888] uppercase tracking-wider">Milestones</h2>
+        <button
+          onClick={toggleMilestoneCelebrations}
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[#141414] border border-white/[0.06] text-white hover:bg-white/[0.04] transition-colors tap-active text-left"
+        >
+          <div className="w-10 h-10 rounded-lg bg-[#E50914]/10 flex items-center justify-center flex-shrink-0">
+            {state.showMilestoneCelebrations ? (
+              <Bell className="w-5 h-5 text-[#E50914]" />
+            ) : (
+              <BellOff className="w-5 h-5 text-[#666]" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">
+              {state.showMilestoneCelebrations ? 'Milestone Celebrations On' : 'Milestone Celebrations Off'}
+            </p>
+            <p className="text-xs text-[#666]">
+              {state.showMilestoneCelebrations
+                ? 'Show celebration modals when milestones are reached'
+                : 'Silently unlock achievements without celebrations'}
+            </p>
+          </div>
+          <div
+            className={`w-10 h-6 rounded-full flex-shrink-0 transition-colors relative ${
+              state.showMilestoneCelebrations ? 'bg-[#E50914]' : 'bg-white/10'
+            }`}
+          >
+            <div
+              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                state.showMilestoneCelebrations ? 'translate-x-4.5 right-0.5' : 'left-0.5'
+              }`}
+              style={{ transform: state.showMilestoneCelebrations ? 'translateX(16px)' : 'translateX(0)' }}
+            />
+          </div>
+        </button>
       </div>
 
       {/* About Section */}

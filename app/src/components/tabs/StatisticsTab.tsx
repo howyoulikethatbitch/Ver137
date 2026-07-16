@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import type { Entry } from '@/types';
+import ShareButton from '../ShareCard';
 
 /* ============================================================
    Full-Screen Modal Component
@@ -108,8 +109,8 @@ function ProfileSummaryCard({ onViewProfile }: { onViewProfile: () => void }) {
           <div>
             <p className="text-white font-bold text-sm">{title.emoji} {title.name}</p>
             <p className="text-[#888] text-xs mt-0.5">
-              {total} Titles • {watchingSince ? `Since ${watchingSince}` : 'Set watching year'}
-              {watchingSince ? ` • ${experience} Years` : ''}
+              {total} Titles &bull; {watchingSince ? `Since ${watchingSince}` : 'Set watching year'}
+              {watchingSince ? ` &bull; ${experience} Years` : ''}
             </p>
           </div>
         </div>
@@ -300,7 +301,7 @@ function HighestRatedModal() {
             <p className="text-white font-semibold text-sm truncate">{entry.title}</p>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[#888] text-xs">{entry.type}</span>
-              <span className="text-[#555] text-xs">•</span>
+              <span className="text-[#555] text-xs">&bull;</span>
               <span className="text-[#888] text-xs">{entry.year}</span>
             </div>
           </div>
@@ -405,16 +406,56 @@ function ClickableColumnCard({
    Main Statistics Tab
    ============================================================ */
 export default function StatisticsTab({ onViewProfile }: { onViewProfile?: () => void }) {
+  const { state } = useApp();
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const closeModal = useCallback(() => setActiveModal(null), []);
 
+  // Build share stats
+  const shareStats = useMemo(() => {
+    const total = state.entries.filter(e => e.status === 'COMPLETE' || e.status === 'ONGOING').length;
+    const completed = state.entries.filter(e => e.status === 'COMPLETE').length;
+    const favorites = state.favorites.length;
+    const avgRating = state.favorites.length > 0
+      ? (state.favorites.reduce((s, f) => s + f.overallRating, 0) / state.favorites.length).toFixed(1)
+      : '0.0';
+
+    // Top country
+    const countryMap = new Map<string, number>();
+    const knownCountries = ['Thailand', 'Japan', 'Taiwan', 'Korea', 'South Korea', 'China'];
+    let othersCount = 0;
+    state.entries.forEach(e => {
+      if (knownCountries.includes(e.country)) {
+        const key = e.country === 'South Korea' ? 'Korea' : e.country;
+        countryMap.set(key, (countryMap.get(key) || 0) + 1);
+      } else {
+        othersCount++;
+      }
+    });
+    if (othersCount > 0) countryMap.set('Others', othersCount);
+    const topCountry = Array.from(countryMap.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+
+    const currentYear = new Date().getFullYear();
+    const yearsCollecting = state.watchingSince ? currentYear - state.watchingSince : '—';
+
+    return { totalEntries: total, completed, favorites, avgRating, topCountry, yearsCollecting };
+  }, [state]);
+
   return (
     <div className="space-y-4 w-full overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <BarChart3 className="w-6 h-6 text-[#E50914]" />
-        <h1 className="text-2xl font-extrabold">Statistics</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-6 h-6 text-[#E50914]" />
+          <h1 className="text-2xl font-extrabold">Statistics</h1>
+        </div>
+        <ShareButton
+          type="stats"
+          title="My BL Stats"
+          entries={[]}
+          stats={shareStats}
+          label="Share"
+        />
       </div>
 
       {/* BL Watcher Profile Summary Card */}

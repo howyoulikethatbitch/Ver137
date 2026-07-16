@@ -1,10 +1,11 @@
-import { useState, memo } from "react";
+import { useState, memo, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ChevronDown, ChevronRight, Trash2, Plus, X, AlertTriangle, Edit3, Lock } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import Poster from "../Poster";
 import type { Entry } from "@/types";
 import EntryModal from "../EntryModal";
+import ShareButton from "../ShareCard";
 import {
   Dialog,
   DialogContent,
@@ -279,6 +280,23 @@ export default function Top10Tab() {
     return state.entries.filter((e) => e.year === year && !existingIds.has(e.id) && e.status !== 'DROPPED');
   };
 
+  // Build share card entries for a drawer
+  const getShareCardEntries = (year: number) => {
+    const drawer = state.top10Drawers.find((d) => d.year === year);
+    if (!drawer) return [];
+    return drawer.entries
+      .sort((a, b) => a.rank - b.rank)
+      .map((e) => {
+        const entry = getEntryById(e.entryId);
+        return {
+          title: entry?.title || "Unknown",
+          poster: entry?.poster || null,
+          year: entry?.year,
+          country: entry?.country,
+        };
+      });
+  };
+
   if (state.top10Drawers.length === 0) {
     return (
       <div className="space-y-4 w-full">
@@ -386,6 +404,18 @@ export default function Top10Tab() {
                     {drawer.entries.length}/10
                   </span>
                 </button>
+
+                {/* Share Button */}
+                {drawer.entries.length > 0 && (
+                  <ShareButton
+                    type="top10"
+                    title={`My ${drawer.year} Rankings`}
+                    subtitle={`${drawer.entries.length}/10 ranked`}
+                    entries={getShareCardEntries(drawer.year)}
+                    year={drawer.year}
+                    label=""
+                  />
+                )}
 
                 {/* Edit Mode Toggle */}
                 {drawer.entries.length > 0 && (

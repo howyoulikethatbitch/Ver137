@@ -1,11 +1,12 @@
 import { useState, useMemo, memo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { PlayCircle, ArrowUpDown, Filter, Pencil, Check, X } from "lucide-react";
+import { PlayCircle, ArrowUpDown, Filter, Pencil, Check, X, Calendar } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import Poster from "../Poster";
 import AirDaySelector from "../AirDaySelector";
 import type { AirDay, Entry } from "@/types";
 import EntryModal from "../EntryModal";
+import CalendarSheet from "../CalendarSheet";
 
 const OngoingCard = memo(function OngoingCard({
   entryId,
@@ -126,6 +127,7 @@ export default function OngoingTab() {
   const [showSort, setShowSort] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Editable year state
   const [isEditingYear, setIsEditingYear] = useState(false);
@@ -173,6 +175,12 @@ export default function OngoingTab() {
 
     return result;
   }, [state.entries, getOngoingByEntryId, todayName, filter, sort]);
+
+  // Planned entries for calendar (current/future year)
+  const plannedEntries = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return state.entries.filter((e) => e.status === "PLANNED" && e.year >= currentYear);
+  }, [state.entries]);
 
   const handleEpisodeChange = useCallback((entryId: string, field: "currentEpisode" | "totalEpisodes", value: number) => {
     const existing = state.ongoing.find((o) => o.entryId === entryId);
@@ -251,6 +259,22 @@ export default function OngoingTab() {
           <p className="text-[#666] text-sm">No ongoing BLs</p>
           <p className="text-[#555] text-xs mt-1">Mark entries as Ongoing to track them here</p>
         </div>
+
+        {/* Calendar Sheet (still available when empty) */}
+        <CalendarSheet
+          isOpen={calendarOpen}
+          onClose={() => setCalendarOpen(false)}
+          ongoingEntries={ongoingEntries}
+          plannedEntries={plannedEntries}
+          onEntryClick={setSelectedEntry}
+        />
+
+        {/* Entry Modal */}
+        <EntryModal
+          isOpen={!!selectedEntry}
+          onClose={() => setSelectedEntry(null)}
+          entry={selectedEntry}
+        />
       </div>
     );
   }
@@ -301,7 +325,7 @@ export default function OngoingTab() {
         <p className="text-sm text-[#B3B3B3]">{ongoingEntries.length} currently airing</p>
       </div>
 
-      {/* Sort & Filter Controls */}
+      {/* Sort & Filter Controls + Calendar */}
       <div className="flex items-center gap-2 flex-wrap">
         <button
           onClick={() => { setShowSort(!showSort); setShowFilter(false); }}
@@ -320,6 +344,16 @@ export default function OngoingTab() {
         >
           <Filter className="w-3.5 h-3.5" />
           Filter
+        </button>
+        <div className="flex-1" />
+        {/* Calendar Button */}
+        <button
+          onClick={() => setCalendarOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all tap-active glass text-[#B3B3B3] hover:bg-white/[0.1]"
+          aria-label="Open release calendar"
+        >
+          <Calendar className="w-5 h-5 text-white" />
+          <span className="hidden sm:inline">Calendar</span>
         </button>
       </div>
 
@@ -384,6 +418,23 @@ export default function OngoingTab() {
           />
         ))}
       </div>
+
+      {/* Calendar Sheet */}
+      <CalendarSheet
+        isOpen={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        ongoingEntries={state.entries
+          .filter((e) => e.status === "ONGOING")
+          .map((entry) => {
+            const ongoingData = getOngoingByEntryId(entry.id);
+            return { entry, ongoingData };
+          })
+          .filter((item): item is { entry: Entry; ongoingData: NonNullable<typeof item.ongoingData> } =>
+            item.ongoingData !== undefined
+          )}
+        plannedEntries={plannedEntries}
+        onEntryClick={setSelectedEntry}
+      />
 
       {/* Entry Modal */}
       <EntryModal
