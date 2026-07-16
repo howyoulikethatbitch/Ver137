@@ -1,1 +1,71 @@
+name: Build and Deploy to GitHub Pages
 
+on:
+  # Deploy on every push to main
+  push:
+    branches: [main]
+  # Allow manual runs from the Actions tab
+  workflow_dispatch:
+
+# Permissions required for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; queued runs wait instead of failing
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build webapp
+    runs-on: ubuntu-latest
+    # Hard cap so a stuck install can never burn hours of runner time
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Vite 7 requires Node >= 20.19 or >= 22.12
+          node-version: 22
+          # Cache ~/.npm between runs keyed on the lockfile -> fast installs
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        # npm ci = clean, reproducible install straight from package-lock.json.
+        # --prefer-offline uses the cache before hitting the network,
+        # --no-audit/--no-fund skip slow extra registry round-trips.
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
