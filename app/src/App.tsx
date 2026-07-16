@@ -12,10 +12,11 @@ import FavoritesTab from '@/components/tabs/FavoritesTab';
 import Top10Tab from '@/components/tabs/Top10Tab';
 import StatisticsTab from '@/components/tabs/StatisticsTab';
 import SettingsTab from '@/components/tabs/SettingsTab';
+import MilestoneModal from '@/components/MilestoneModal';
 import './App.css';
 
 function AppContent() {
-  const { isLoaded } = useApp();
+  const { isLoaded, currentMilestone, dismissMilestone } = useApp();
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -88,6 +89,13 @@ function AppContent() {
           <BLWatcherProfile onBack={() => setProfileOpen(false)} />
         )}
       </AnimatePresence>
+
+      {/* Milestone Celebration Modal */}
+      <MilestoneModal
+        isOpen={!!currentMilestone}
+        milestone={currentMilestone}
+        onClose={dismissMilestone}
+      />
     </div>
   );
 }
