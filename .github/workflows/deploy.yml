@@ -23,14 +23,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug folder structure
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Contents of current directory:"
-          ls -la
-          echo "Finding directories up to 2 levels deep:"
-          find . -maxdepth 2 -type d
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -39,13 +31,20 @@ jobs:
       - name: Install dependencies
         run: |
           cd app
-          npm install --prefer-offline --no-audit --no-fund
+          npm cache clean --force
+          npm install --no-audit --no-fund --legacy-peer-deps
+
+      - name: Verify TypeScript installed
+        run: |
+          cd app
+          ls -la node_modules/.bin/ | head -10
+          cat node_modules/typescript/package.json | grep version
 
       - name: Build static site
         run: |
           cd app
-          npm exec tsc -- -b
-          npm exec vite -- build
+          ./node_modules/.bin/tsc -b
+          ./node_modules/.bin/vite build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
