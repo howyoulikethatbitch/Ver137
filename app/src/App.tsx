@@ -1,19 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from '@/context/AppContext';
 import Header from '@/components/Header';
 import SidebarNav, { type TabId } from '@/components/SidebarNav';
-import SearchOverlay from '@/components/SearchOverlay';
-import BLWatcherProfile from '@/components/BLWatcherProfile';
-import OverviewTab from '@/components/tabs/OverviewTab';
-import BLSeriesTab from '@/components/tabs/BLSeriesTab';
-import OngoingTab from '@/components/tabs/OngoingTab';
-import FavoritesTab from '@/components/tabs/FavoritesTab';
-import Top10Tab from '@/components/tabs/Top10Tab';
-import StatisticsTab from '@/components/tabs/StatisticsTab';
-import SettingsTab from '@/components/tabs/SettingsTab';
 import MilestoneModal from '@/components/MilestoneModal';
+// Overview is the landing tab — keep it eager so first paint is instant
+import OverviewTab from '@/components/tabs/OverviewTab';
 import './App.css';
+
+// ── Lazy-loaded routes ────────────────────────────────────────────────────────
+// Each lazy() call produces a separate JS chunk that is only downloaded
+// when the user first navigates to that tab.
+const BLSeriesTab      = lazy(() => import('@/components/tabs/BLSeriesTab'));
+const OngoingTab       = lazy(() => import('@/components/tabs/OngoingTab'));
+const FavoritesTab     = lazy(() => import('@/components/tabs/FavoritesTab'));
+const Top10Tab         = lazy(() => import('@/components/tabs/Top10Tab'));
+const StatisticsTab    = lazy(() => import('@/components/tabs/StatisticsTab'));
+const SettingsTab      = lazy(() => import('@/components/tabs/SettingsTab'));
+const SearchOverlay    = lazy(() => import('@/components/SearchOverlay'));
+const BLWatcherProfile = lazy(() => import('@/components/BLWatcherProfile'));
+
+// ── Minimal tab-loading skeleton ──────────────────────────────────────────────
+function TabFallback() {
+  return (
+    <div className="w-full flex items-center justify-center py-20">
+      <motion.div
+        animate={{ opacity: [0.3, 1, 0.3] }}
+        transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+        className="w-6 h-6 rounded-full bg-[#E50914]"
+      />
+    </div>
+  );
+}
 
 function AppContent() {
   const { isLoaded, currentMilestone, dismissMilestone } = useApp();
@@ -76,29 +94,37 @@ function AppContent() {
             transition={{ duration: 0.2 }}
             className="w-full"
           >
-            {activeTab === 'overview' && <OverviewTab />}
-            {activeTab === 'blseries' && <BLSeriesTab />}
-            {activeTab === 'ongoing' && <OngoingTab />}
-            {activeTab === 'favorites' && <FavoritesTab />}
-            {activeTab === 'top10' && <Top10Tab />}
-            {activeTab === 'statistics' && <StatisticsTab onViewProfile={() => setProfileOpen(true)} />}
-            {activeTab === 'settings' && <SettingsTab />}
+            <Suspense fallback={<TabFallback />}>
+              {activeTab === 'overview'    && <OverviewTab />}
+              {activeTab === 'blseries'   && <BLSeriesTab />}
+              {activeTab === 'ongoing'    && <OngoingTab />}
+              {activeTab === 'favorites'  && <FavoritesTab />}
+              {activeTab === 'top10'      && <Top10Tab />}
+              {activeTab === 'statistics' && <StatisticsTab onViewProfile={() => setProfileOpen(true)} />}
+              {activeTab === 'settings'   && <SettingsTab />}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Search Overlay */}
-      <SearchOverlay
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-      />
-
-      {/* BL Watcher Profile */}
-      <AnimatePresence>
-        {profileOpen && (
-          <BLWatcherProfile onBack={() => setProfileOpen(false)} />
+      {/* Search Overlay — lazy, only loaded when first opened */}
+      <Suspense fallback={null}>
+        {searchOpen && (
+          <SearchOverlay
+            isOpen={searchOpen}
+            onClose={() => setSearchOpen(false)}
+          />
         )}
-      </AnimatePresence>
+      </Suspense>
+
+      {/* BL Watcher Profile — lazy, only loaded from Statistics tab */}
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {profileOpen && (
+            <BLWatcherProfile onBack={() => setProfileOpen(false)} />
+          )}
+        </AnimatePresence>
+      </Suspense>
 
       {/* Milestone Celebration Modal */}
       <MilestoneModal
