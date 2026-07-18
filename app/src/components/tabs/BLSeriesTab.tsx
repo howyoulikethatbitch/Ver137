@@ -145,7 +145,7 @@ const EntryCard = memo(function EntryCard({
 });
 
 export default function BLSeriesTab() {
-  const { state, dispatch, isFavorited, isInTop10 } = useApp();
+  const { state, dispatch, isFavorited, isInTop10, checkMilestones } = useApp();
   const [filter, setFilter] = useState<FilterType>("All");
   const [sort, setSort] = useState<SortType>("yearNew");
   const [showSort, setShowSort] = useState(false);
@@ -214,8 +214,10 @@ export default function BLSeriesTab() {
       dispatch({ type: "UPDATE_ENTRY", payload: entry });
     } else {
       dispatch({ type: "ADD_ENTRY", payload: entry });
+      // Check collection size milestone after adding a new entry
+      checkMilestones('COLLECTION_SIZE', state.entries.length + 1);
     }
-  }, [editingEntry, dispatch]);
+  }, [editingEntry, dispatch, checkMilestones, state.entries.length]);
 
   const handleDelete = useCallback((id: string) => {
     dispatch({ type: "DELETE_ENTRY", payload: id });

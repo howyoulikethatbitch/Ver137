@@ -428,9 +428,7 @@ export default function SettingsTab() {
             }`}
           >
             <div
-              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                state.showMilestoneCelebrations ? 'translate-x-4.5 right-0.5' : 'left-0.5'
-              }`}
+              className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
               style={{ transform: state.showMilestoneCelebrations ? 'translateX(16px)' : 'translateX(0)' }}
             />
           </div>

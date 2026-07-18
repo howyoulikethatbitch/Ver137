@@ -515,7 +515,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let milestone: Milestone | null = null;
 
     if (type === 'PERFECT_RATING' && value >= 10.0) {
-      const id = 'PERFECT_RATING-first';
+      const id = 'PERFECT_RATING-10';
       if (!celebrated.includes(id)) {
         milestone = {
           type: 'PERFECT_RATING',
@@ -525,17 +525,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         };
       }
     } else if (type === 'TOP10_COMPLETE') {
-      const id = 'TOP10_COMPLETE-first';
+      // value = the year of the drawer being completed (passed by the caller
+      // who has already verified the drawer will reach 10 entries after dispatch)
+      const id = `TOP10_COMPLETE-${value}`;
       if (!celebrated.includes(id)) {
-        const fullDrawer = state.top10Drawers.find(d => d.entries.length >= 10);
-        if (fullDrawer) {
-          milestone = {
-            type: 'TOP10_COMPLETE',
-            title: getMilestoneTitle('TOP10_COMPLETE', fullDrawer.year),
-            message: getMilestoneMessage('TOP10_COMPLETE', fullDrawer.year),
-            value: fullDrawer.year,
-          };
-        }
+        milestone = {
+          type: 'TOP10_COMPLETE',
+          title: getMilestoneTitle('TOP10_COMPLETE', value),
+          message: getMilestoneMessage('TOP10_COMPLETE', value),
+          value,
+        };
       }
     } else if (type === 'ANNIVERSARY') {
       if (state.watchingSince) {

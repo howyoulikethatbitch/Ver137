@@ -199,7 +199,7 @@ function RankingModal({
 }
 
 export default function Top10Tab() {
-  const { state, dispatch, getEntryById } = useApp();
+  const { state, dispatch, getEntryById, checkMilestones } = useApp();
   const [openDrawers, setOpenDrawers] = useState<Set<number>>(new Set([new Date().getFullYear()]));
   const [addYearOpen, setAddYearOpen] = useState(false);
   const [newYear, setNewYear] = useState("");
@@ -592,6 +592,11 @@ export default function Top10Tab() {
                     size="sm"
                     onClick={() => {
                       dispatch({ type: "ADD_TO_TOP10", payload: { year: addEntryDrawer, entryId: entry.id } });
+                      // Check if this drawer just became full (9 entries + this one = 10)
+                      const drawer = state.top10Drawers.find(d => d.year === addEntryDrawer);
+                      if (drawer && drawer.entries.length + 1 >= 10) {
+                        checkMilestones('TOP10_COMPLETE', addEntryDrawer);
+                      }
                       setAddEntryDrawer(null);
                     }}
                     className="bg-[#E50914] text-white hover:bg-[#E50914]/90 text-xs h-7 px-3"
