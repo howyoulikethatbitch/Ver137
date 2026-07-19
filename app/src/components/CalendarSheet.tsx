@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 import type { Entry, OngoingEntry, AirDay } from "@/types";
 import Poster from "./Poster";
 
@@ -82,12 +82,13 @@ export default function CalendarSheet({
       }
     }
 
-    // Add planned entries for current/future year
+    // Add planned entries — use specific plannedDate if set, otherwise year placeholder
     const currentYear = now.getFullYear();
     for (const entry of plannedEntries) {
       if (entry.year >= currentYear) {
-        // Use a placeholder date in the near future (sort by year)
-        const date = new Date(entry.year, 0, 1);
+        const date = entry.plannedDate
+          ? new Date(entry.plannedDate + "T00:00:00")
+          : new Date(entry.year, 0, 1);
         result.push({ date, entry, type: "planned" });
       }
     }
@@ -278,10 +279,9 @@ export default function CalendarSheet({
                           : "";
 
                       return (
-                        <button
+                        <div
                           key={`${item.entry.id}-${idx}`}
-                          onClick={() => onEntryClick(item.entry)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors tap-active text-left"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] text-left"
                         >
                           <span className="text-[10px] text-[#E50914] font-semibold w-14 flex-shrink-0">
                             {formatUpcomingDate(item.date)}
@@ -303,8 +303,7 @@ export default function CalendarSheet({
                               {item.entry.country}
                             </p>
                           </div>
-                          <ChevronRight className="w-3.5 h-3.5 text-[#444] flex-shrink-0" />
-                        </button>
+                        </div>
                       );
                     })}
                   </div>

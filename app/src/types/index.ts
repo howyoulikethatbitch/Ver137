@@ -13,6 +13,7 @@ export interface Entry {
   country: string;
   status: Status;
   createdAt: number;
+  plannedDate?: string; // ISO date string (YYYY-MM-DD), only for PLANNED status
 }
 
 export interface OngoingEntry {

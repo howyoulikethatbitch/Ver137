@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Pencil, Trash2, Check } from 'lucide-react';
+import { Heart, Pencil, Trash2, Check, X } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useApp } from '@/context/AppContext';
 import type { FavoriteEntry } from '@/types';
@@ -649,12 +649,19 @@ export default function FavoriteEvaluation({
           {/* Header */}
           <div className="sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm px-5 pt-5 pb-3 border-b border-white/[0.06]">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-[#E50914]" />
-                <h2 className="text-sm font-bold text-white truncate pr-4">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Heart className="w-4 h-4 text-[#E50914] flex-shrink-0" />
+                <h2 className="text-sm font-bold text-white truncate">
                   {entry.title}
                 </h2>
               </div>
+              <button
+                onClick={onClose}
+                className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center hover:bg-white/[0.1] transition-colors flex-shrink-0 ml-2"
+                aria-label="Close"
+              >
+                <X className="w-3.5 h-3.5 text-[#B3B3B3]" />
+              </button>
             </div>
           </div>
 

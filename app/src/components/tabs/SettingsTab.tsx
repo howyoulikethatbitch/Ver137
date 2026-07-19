@@ -11,7 +11,6 @@ import {
   Database,
   Settings,
   Trash2,
-  Loader2,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { saveToIndexedDB, clearIndexedDB } from '@/hooks/useIndexedDB';
@@ -285,23 +284,6 @@ export default function SettingsTab() {
 
   return (
     <div className="space-y-6 w-full relative">
-      {/* Import Mode Banner */}
-      <AnimatePresence>
-        {isImporting && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-16 left-0 right-0 z-[80] bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 flex items-center justify-center gap-2"
-          >
-            <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
-            <span className="text-amber-400 text-sm font-medium">
-              Importing... milestone notifications paused
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Header */}
       <div className="flex items-center gap-2">
         <Settings className="w-6 h-6 text-[#E50914]" />

@@ -51,9 +51,11 @@ const ACHIEVEMENTS: Achievement[] = [
   { id: 'growing-library', emoji: '📚', name: 'Growing Library', description: 'Collect 25 BL titles', category: 'Collection', condition: (s) => s.total >= 25 },
   { id: 'bookcase-filled', emoji: '📖', name: 'Bookcase Filled', description: 'Collect 50 BL titles', category: 'Collection', condition: (s) => s.total >= 50 },
   { id: 'archive-builder', emoji: '🎬', name: 'Archive Builder', description: 'Collect 100 BL titles', category: 'Collection', condition: (s) => s.total >= 100 },
-  { id: 'master-archive', emoji: '🏛️', name: 'Master Archive', description: 'Collect 250 BL titles', category: 'Collection', condition: (s) => s.total >= 250 },
-  { id: 'legendary-collection', emoji: '💎', name: 'Legendary Collection', description: 'Collect 500 BL titles', category: 'Collection', condition: (s) => s.total >= 500 },
-  { id: 'infinite-library', emoji: '🌌', name: 'Infinite Library', description: 'Collect 1,000 BL titles', category: 'Collection', condition: (s) => s.total >= 1000 },
+  { id: 'master-archive', emoji: '🏛️', name: 'Master Archive', description: 'Collect 200 BL titles', category: 'Collection', condition: (s) => s.total >= 200 },
+  { id: 'endless-collection', emoji: '🌌', name: 'Endless Collection', description: 'Collect 300 BL titles', category: 'Collection', condition: (s) => s.total >= 300 },
+  { id: 'legendary-collection', emoji: '💎', name: 'Extraordinary Curator', description: 'Collect 500 BL titles', category: 'Collection', condition: (s) => s.total >= 500 },
+  { id: 'legendary-collector', emoji: '👑', name: 'Legendary Collector', description: 'Collect 750 BL titles', category: 'Collection', condition: (s) => s.total >= 750 },
+  { id: 'infinite-library', emoji: '🌈', name: 'Hall of Legends', description: 'Collect 1,000 BL titles', category: 'Collection', condition: (s) => s.total >= 1000 },
 
   /* ---- 📺 Completed (5) ---- */
   { id: 'first-finish', emoji: '📺', name: 'First Finish', description: 'Complete your first title', category: 'Completed', condition: (s) => s.completed >= 1 },
@@ -89,7 +91,7 @@ const ACHIEVEMENTS: Achievement[] = [
   { id: 'first-passport', emoji: '✈️', name: 'First Passport', description: 'Watch BL from 2 countries', category: 'Countries', condition: (s) => s.countryBreakdown.length >= 2 },
   { id: 'asian-explorer', emoji: '🌏', name: 'Asian Explorer', description: 'Watch BL from 4 countries', category: 'Countries', condition: (s) => s.countryBreakdown.length >= 4 },
   { id: 'global-collector', emoji: '🌍', name: 'Global Collector', description: 'Watch BL from 6 countries', category: 'Countries', condition: (s) => s.countryBreakdown.length >= 6 },
-  { id: 'world-traveler', emoji: '🌎', name: 'World Traveler', description: 'Watch BL from all supported countries', category: 'Countries', condition: (s) => s.countryBreakdown.length >= 7 },
+  { id: 'world-traveler', emoji: '🌍', name: 'World Traveler', description: 'Collect BL titles from all supported countries (Thailand, Japan, South Korea, Taiwan, China, US)', category: 'Countries', condition: (s) => { const owned = s.countryBreakdown.map(([c]) => c); return ['Thailand', 'Japan', 'South Korea', 'Taiwan', 'China', 'US'].every(c => owned.includes(c)); } },
 
   /* ---- 🌱 Journey (4) ---- */
   { id: 'first-step', emoji: '🌱', name: 'First Step', description: 'Set your Watching Since year', category: 'Journey', condition: (s) => s.watchingSince !== null },
@@ -110,7 +112,7 @@ const ACHIEVEMENTS: Achievement[] = [
   { id: 'early-adopter', emoji: '🌅', name: 'Early Adopter', description: 'Add a title within its release year', category: 'Hidden', hidden: true, condition: (_s) => false },
   { id: 'organized-collector', emoji: '🗂️', name: 'Organized Collector', description: 'Create 10 yearly drawers', category: 'Hidden', hidden: true, condition: (s) => s.yearlyDrawerCount >= 10 },
   { id: 'consistent-reviewer', emoji: '🎖️', name: 'Consistent Reviewer', description: 'Rate 100 consecutive favorites', category: 'Hidden', hidden: true, condition: (s) => s.consecutiveRatedCount >= 100 },
-  { id: 'movie-marathon', emoji: '🎞️', name: 'Movie Marathon', description: 'Collect 100 movies', category: 'Hidden', hidden: true, condition: (s) => s.movies >= 100 },
+  { id: 'movie-marathon', emoji: '🎞️', name: 'Movie Marathon', description: 'Collect 50 movies', category: 'Hidden', hidden: true, condition: (s) => s.movies >= 50 },
   { id: 'series-marathon', emoji: '📺', name: 'Series Marathon', description: 'Collect 300 series', category: 'Hidden', hidden: true, condition: (s) => s.series >= 300 },
   { id: 'continental-explorer', emoji: '🧭', name: 'Continental Explorer', description: 'Watch BL from every supported region', category: 'Hidden', hidden: true, condition: (s) => s.uniqueRegions >= 5 },
   { id: 'elite-collector', emoji: '🏅', name: 'Elite Collector', description: '90%+ completion rate with 500+ entries', category: 'Hidden', hidden: true, condition: (s) => s.total >= 500 && s.completed / s.total >= 0.9 },

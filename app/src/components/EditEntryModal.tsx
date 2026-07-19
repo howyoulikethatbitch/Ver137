@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,7 @@ export default function EditEntryModal({ isOpen, onClose, onSave, entry }: EditE
   const [airDays, setAirDays] = useState<AirDay[]>([]);
   const [currentEp, setCurrentEp] = useState(0);
   const [totalEp, setTotalEp] = useState(1);
+  const [plannedDate, setPlannedDate] = useState('');
   const [error, setError] = useState('');
 
   const ongoing = entry ? getOngoingByEntryId(entry.id) : null;
@@ -56,6 +57,7 @@ export default function EditEntryModal({ isOpen, onClose, onSave, entry }: EditE
       setCountry(entry.country.replace(/\s*\p{Emoji}\s*/gu, '').trim());
       setStatus(entry.status);
       setPosterData(entry.poster);
+      setPlannedDate(entry.plannedDate || '');
       if (ongoing) {
         setAirDays(ongoing.airDays as AirDay[]);
         setCurrentEp(ongoing.currentEpisode);
@@ -72,6 +74,7 @@ export default function EditEntryModal({ isOpen, onClose, onSave, entry }: EditE
       setCountry('Thailand');
       setStatus('COMPLETE');
       setPosterData(null);
+      setPlannedDate('');
       setAirDays([]);
       setCurrentEp(0);
       setTotalEp(1);
@@ -108,7 +111,8 @@ export default function EditEntryModal({ isOpen, onClose, onSave, entry }: EditE
       country,
       status,
       poster: posterData,
-      createdAt: entry?.createdAt || Date.now()
+      createdAt: entry?.createdAt || Date.now(),
+      ...(status === 'PLANNED' && plannedDate ? { plannedDate } : {}),
     };
 
     if (onSave) {
@@ -252,6 +256,35 @@ export default function EditEntryModal({ isOpen, onClose, onSave, entry }: EditE
               ))}
             </div>
           </div>
+
+          {/* Planned Date */}
+          {status === 'PLANNED' && (
+            <div className="space-y-3 bg-white/[0.04] rounded-xl p-4">
+              <div>
+                <label className="text-sm font-medium text-[#B3B3B3]">
+                  Release Date <span className="text-[#666] text-xs">(optional)</span>
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={plannedDate}
+                  onChange={(e) => setPlannedDate(e.target.value)}
+                  className="flex-1 h-9 bg-white/[0.06] border border-white/10 rounded-lg px-3 text-sm text-white focus:border-[#E50914] outline-none [color-scheme:dark]"
+                />
+                {plannedDate && (
+                  <button
+                    onClick={() => setPlannedDate('')}
+                    className="text-[#666] hover:text-[#B3B3B3] transition-colors tap-active"
+                    aria-label="Clear date"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <p className="text-[10px] text-[#666]">Links to Release Calendar in Ongoing BL tab</p>
+            </div>
+          )}
 
           {/* Ongoing Air Days & Episodes */}
           {status === 'ONGOING' && (
